@@ -1,0 +1,1236 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>传灯 / THE PASSING LAMP — 映河</title>
+<style>
+:root{
+  --night:#070c10; --deep:#0b1218; --mist:#101a21;
+  --bone:#d9dfe1; --dim:#8b9ba3; --faint:#5d6d76;
+  --gold:#ffce8b; --gold-soft:#f0bd7c; --ember:#c8503c;
+  --line:rgba(168,196,208,.16); --line-warm:rgba(255,206,139,.28);
+  --serif:"Songti SC","STSong","SimSun","Noto Serif CJK SC","Source Han Serif SC",serif;
+  --sans:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  --mono:Consolas,"SFMono-Regular",Menlo,"Courier New",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#04070a}
+body{font-family:var(--sans);color:var(--bone);-webkit-font-smoothing:antialiased;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#frame{position:absolute;top:0;left:0;width:1600px;height:900px;transform-origin:top left;
+  overflow:hidden;background:var(--night);box-shadow:0 0 120px rgba(0,0,0,.9)}
+#cv{position:absolute;inset:0;width:1600px;height:900px;display:block;touch-action:none}
+#ui{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+#ui button{pointer-events:auto;font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.grain{position:absolute;inset:0;pointer-events:none;opacity:.28;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='180' height='180' filter='url(%23n)' opacity='.45'/></svg>")}
+.vig{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 78% 72% at 50% 48%,transparent 32%,rgba(0,0,0,.62) 100%)}
+
+/* ---------- HUD ---------- */
+#hud{position:absolute;inset:0;opacity:0;transition:opacity .8s ease}
+#hud.on{opacity:1}
+.hud-tl{position:absolute;left:52px;top:42px}
+.hud-tr{position:absolute;right:52px;top:42px;text-align:right}
+.hud-bl{position:absolute;left:52px;bottom:38px}
+.hud-br{position:absolute;right:52px;bottom:38px;text-align:right}
+.lbl{font-family:var(--mono);font-size:11px;letter-spacing:.28em;color:var(--faint);text-transform:uppercase}
+.big{font-family:var(--serif);font-size:30px;letter-spacing:.2em;color:var(--bone);margin-top:9px;font-weight:400}
+.sub{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--dim);margin-top:8px}
+.rule{width:76px;height:1px;background:var(--line-warm);margin:14px 0 0}
+.hud-tr .rule{margin-left:auto}
+.pips{display:flex;gap:9px;justify-content:flex-end;margin-top:12px}
+.pip{width:7px;height:7px;border:1px solid rgba(255,206,139,.35);transform:rotate(45deg);transition:all .5s}
+.pip.lit{background:var(--gold);border-color:var(--gold);box-shadow:0 0 14px rgba(255,206,139,.85)}
+.keys{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--faint);line-height:2.1}
+.keys b{font-weight:400;color:var(--dim)}
+.readout{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--faint);line-height:2.1}
+.readout b{font-weight:400;color:var(--gold-soft)}
+.charge{width:150px;height:1px;background:rgba(168,196,208,.18);margin:10px 0 0 auto;position:relative}
+.charge i{position:absolute;left:0;top:0;height:1px;width:0%;background:var(--gold);box-shadow:0 0 9px var(--gold);transition:width .12s linear}
+.tools{position:absolute;right:52px;top:184px;display:flex;flex-direction:column;gap:9px;align-items:flex-end}
+.tool{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--dim);
+  border:1px solid rgba(168,196,208,.26);padding:7px 13px;transition:.3s;background:rgba(7,12,16,.55)}
+.tool:hover{color:var(--gold);border-color:var(--line-warm)}
+.corner{position:absolute;width:24px;height:24px;border:1px solid rgba(168,196,208,.22);pointer-events:none}
+.c1{left:26px;top:26px;border-right:0;border-bottom:0}
+.c2{right:26px;top:26px;border-left:0;border-bottom:0}
+.c3{left:26px;bottom:26px;border-right:0;border-top:0}
+.c4{right:26px;bottom:26px;border-left:0;border-top:0}
+
+/* ---------- screens ---------- */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;opacity:0;pointer-events:none;transition:opacity 1s ease;text-align:center}
+.screen.on{opacity:1;pointer-events:auto}
+#title{background:radial-gradient(ellipse 42% 52% at 50% 46%,rgba(255,190,110,.075),transparent 72%)}
+.title-seal{width:44px;height:44px;border:1px solid rgba(200,80,60,.7);color:var(--ember);
+  font-family:var(--serif);font-size:15px;line-height:42px;letter-spacing:.05em;margin-bottom:34px;
+  transform:rotate(-3deg);box-shadow:0 0 30px rgba(200,80,60,.12)}
+.title-zh{font-family:var(--serif);font-weight:400;font-size:112px;letter-spacing:.34em;
+  margin-right:-.34em;line-height:1.06;color:#f0e4cf;text-shadow:0 0 70px rgba(255,196,120,.24)}
+.title-en{font-family:var(--mono);font-size:13px;letter-spacing:.62em;color:var(--gold-soft);
+  margin-top:26px;text-transform:uppercase}
+.title-rule{width:220px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,206,139,.5),transparent);margin:40px 0 28px}
+.title-note{font-family:var(--serif);font-size:18px;letter-spacing:.24em;color:var(--dim);line-height:2.2}
+.title-small{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--faint);margin-top:34px;line-height:2.4}
+.start{margin-top:52px;font-family:var(--mono);font-size:12px;letter-spacing:.34em;color:var(--gold);
+  border:1px solid rgba(255,206,139,.42);padding:15px 34px;transition:.4s;background:rgba(255,206,139,.03)}
+.start:hover{background:rgba(255,206,139,.12);box-shadow:0 0 40px rgba(255,206,139,.14)}
+.blink{animation:bl 2.6s ease-in-out infinite}
+@keyframes bl{0%,100%{opacity:.42}50%{opacity:1}}
+
+/* verse interlude */
+#verse{background:radial-gradient(ellipse 62% 58% at 50% 50%,rgba(5,9,12,.82),rgba(5,9,12,.34) 78%);backdrop-filter:blur(1.5px)}
+.verse-no{font-family:var(--mono);font-size:11px;letter-spacing:.4em;color:var(--gold-soft)}
+.verse-zh{font-family:var(--serif);font-size:66px;letter-spacing:.3em;margin-right:-.3em;
+  color:#f4e9d5;margin-top:40px;text-shadow:0 0 60px rgba(255,196,120,.25);font-weight:400}
+.verse-en{font-family:var(--mono);font-size:12px;letter-spacing:.28em;color:var(--dim);margin-top:30px}
+.verse-bar{width:1px;height:56px;background:linear-gradient(180deg,rgba(255,206,139,.65),transparent);margin:34px 0 0}
+.verse-c{font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--faint);margin-top:34px}
+
+/* ending */
+#ending{background:transparent;justify-content:flex-start;align-items:flex-start}
+#ending .end-poem{position:absolute;left:150px;top:150px;writing-mode:vertical-rl;
+  font-family:var(--serif);font-size:30px;letter-spacing:.42em;color:#f0e3cc;line-height:2.5;
+  text-shadow:0 0 30px rgba(255,196,120,.2);height:560px}
+#ending .end-poem em{font-style:normal;color:var(--gold-soft)}
+#ending .end-side{position:absolute;right:120px;top:174px;text-align:right}
+.end-t{font-family:var(--serif);font-size:52px;letter-spacing:.3em;color:#f0e4cf;font-weight:400}
+.end-en{font-family:var(--mono);font-size:11px;letter-spacing:.42em;color:var(--gold-soft);margin-top:20px}
+.end-l{width:150px;height:1px;background:var(--line-warm);margin:34px 0 0 auto}
+.end-p{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--faint);line-height:2.4;margin-top:30px}
+.end-sig{position:absolute;left:150px;bottom:96px;font-family:var(--serif);font-size:17px;
+  letter-spacing:.28em;color:var(--dim)}
+.end-sig span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.26em;
+  color:var(--faint);margin-top:14px}
+.end-again{position:absolute;right:120px;bottom:96px;font-family:var(--mono);font-size:11px;
+  letter-spacing:.24em;color:var(--gold-soft);border:1px solid var(--line-warm);padding:13px 24px;transition:.4s}
+.end-again:hover{background:rgba(255,206,139,.1)}
+
+/* colophon */
+#colophon{background:rgba(4,8,11,.95);backdrop-filter:blur(8px);justify-content:flex-start;
+  align-items:flex-start;text-align:left;padding:0}
+.colo-wrap{width:100%;height:100%;padding:92px 130px;display:flex;gap:90px}
+.colo-l{width:430px;flex:none}
+.colo-r{flex:1;padding-top:6px}
+.colo-h{font-family:var(--serif);font-size:44px;letter-spacing:.28em;color:#eee1cb;font-weight:400}
+.colo-en{font-family:var(--mono);font-size:11px;letter-spacing:.38em;color:var(--gold-soft);margin-top:18px}
+.colo-sec{font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--faint);
+  margin:46px 0 18px;text-transform:uppercase}
+.colo-txt{font-family:var(--serif);font-size:15px;letter-spacing:.1em;color:#b3c2c9;line-height:2.25}
+.colo-txt b{font-weight:400;color:#efe4d0}
+.colo-li{display:flex;gap:18px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+  color:#a3b4bd;line-height:2.5;border-bottom:1px solid rgba(168,196,208,.09);padding:7px 0}
+.colo-li span:first-child{color:var(--gold-soft);width:112px;flex:none}
+.colo-close{position:absolute;right:60px;top:52px;font-family:var(--mono);font-size:11px;
+  letter-spacing:.24em;color:var(--dim);border:1px solid var(--line);padding:11px 20px;transition:.3s}
+.colo-close:hover{color:var(--gold);border-color:var(--line-warm)}
+.colo-foot{position:absolute;left:130px;bottom:64px;font-family:var(--serif);font-size:14px;
+  letter-spacing:.24em;color:var(--faint)}
+
+/* toast */
+#toast{position:absolute;left:50%;top:120px;transform:translateX(-50%) translateY(-8px);
+  font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--gold-soft);
+  opacity:0;transition:.5s;white-space:nowrap}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#fatal{position:absolute;left:0;right:0;top:50%;text-align:center;font-family:var(--mono);
+  font-size:13px;color:var(--ember);display:none}
+</style>
+</head>
+<body>
+<div id="frame">
+  <canvas id="cv"></canvas>
+  <div class="vig"></div>
+  <div class="grain"></div>
+  <div id="ui">
+    <div class="corner c1"></div><div class="corner c2"></div>
+    <div class="corner c3"></div><div class="corner c4"></div>
+
+    <div id="hud">
+      <div class="hud-tl">
+        <div class="lbl">The Passing Lamp · Layer</div>
+        <div class="big" id="hLayer">第一层</div>
+        <div class="rule"></div>
+        <div class="sub" id="hRom">LAYER I / VII</div>
+      </div>
+      <div class="hud-tr">
+        <div class="lbl">Lamps Awake</div>
+        <div class="pips" id="pips"></div>
+        <div class="rule"></div>
+        <div class="sub" id="hCount">00 / 07</div>
+      </div>
+      <div class="tools">
+        <button class="tool" id="btnHint">H · 提示</button>
+        <button class="tool" id="btnReset">R · 重置</button>
+        <button class="tool" id="btnMute">M · 静音</button>
+        <button class="tool" id="btnAbout">? · 制作说明</button>
+      </div>
+      <div class="hud-bl">
+        <div class="keys">
+          <b>拖动铜镜</b> 转动　<b>← →</b> 微调　<b>Shift</b> 加速<br>
+          <b>H</b> 提示　<b>R</b> 重置本层　<b>M</b> 静音　<b>Esc</b> 关闭面板
+        </div>
+      </div>
+      <div class="hud-br">
+        <div class="readout" id="readout">镜面 00 · 待校准</div>
+        <div class="charge"><i id="chargeBar"></i></div>
+        <div class="readout" style="margin-top:8px">LUMEN <b id="lumen">0.00</b></div>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <div class="screen on" id="title">
+      <div class="title-seal">传</div>
+      <div class="title-zh">传灯</div>
+      <div class="title-en">The Passing Lamp</div>
+      <div class="title-rule"></div>
+      <div class="title-note">一灯传一灯，七层塔次第醒来。<br>光不到的地方，连墨也没有落笔。</div>
+      <div class="title-small">A RAY-TRACED INK GAME · SEVEN LAYERS · ONE THREAD OF LIGHT<br>ALL IMAGES AND SOUNDS ARE GENERATED IN CODE</div>
+      <button class="start blink" id="btnStart">点 灯　/　BEGIN</button>
+      <div class="title-small" style="margin-top:26px">拖动铜镜，把光引到灯芯</div>
+    </div>
+
+    <div class="screen" id="verse">
+      <div class="verse-no" id="vNo">LAYER I · 灯 起</div>
+      <div class="verse-zh" id="vZh"></div>
+      <div class="verse-en" id="vEn"></div>
+      <div class="verse-bar"></div>
+      <div class="verse-c">点击继续　/　CLICK TO CONTINUE</div>
+    </div>
+
+    <div class="screen" id="ending">
+      <div class="end-poem" id="endPoem"></div>
+      <div class="end-side">
+        <div class="end-t">传灯</div>
+        <div class="end-en">THE PASSING LAMP</div>
+        <div class="end-l"></div>
+        <div class="end-p">七层 · 七镜 · 一束光<br>SEVEN LAYERS / ONE THREAD</div>
+      </div>
+      <div class="end-sig">映河 · YINGHE<span>二〇二六 · MADE ENTIRELY OF CODE</span></div>
+      <button class="end-again" id="btnAgain">再点一次灯　/　REPLAY</button>
+    </div>
+
+    <div class="screen" id="colophon">
+      <div class="colo-wrap">
+        <div class="colo-l">
+          <div class="colo-h">制作说明</div>
+          <div class="colo-en">COLOPHON / HOW THIS WAS MADE</div>
+          <div class="colo-sec">命题</div>
+          <div class="colo-txt">夜塔沉睡，墨尚未落笔。<b>光不是通关的道具，而是「看见」本身</b>——被照到的那一层，才从黑暗里显出轮廓。七层点亮，千窗次第醒来。</div>
+          <div class="colo-sec">致意</div>
+          <div class="colo-txt">参照 <b>awesome-fable-5.2</b> 收录作品中反复出现的做法：单一画种作渲染语言、单文件零外部素材、模型与声音皆由代码生成、电影感构图与克制的 UI。本作由另一模型独立命题与实现。</div>
+        </div>
+        <div class="colo-r">
+          <div class="colo-sec">实现 / IMPLEMENTATION</div>
+          <div class="colo-li"><span>RENDERING</span><span>Canvas 2D · 程序化夜色水墨、宣纸纤维、远山、飞檐与窗棂</span></div>
+          <div class="colo-li"><span>OPTICS</span><span>每帧 45 条锥形射线 · 线段求交 · 镜面反射递归 8 层 · 衰减与吸收</span></div>
+          <div class="colo-li"><span>SOLVABILITY</span><span>关卡由光路反推生成：先有折线路径，再由入射/出射向量反解铜镜法线，故每层必有解</span></div>
+          <div class="colo-li"><span>INTERACTION</span><span>指针拖拽旋转 · 键盘微调 · 逐层收窄的光锥与镜面长度构成难度曲线</span></div>
+          <div class="colo-li"><span>AUDIO</span><span>Web Audio 纯合成：夜风、铜镜摩擦、蓄光泛音、磬与钟、五声琶音</span></div>
+          <div class="colo-li"><span>ASSETS</span><span>0 张图片 · 0 个音频 · 0 个字体 · 0 个依赖 · 可离线双击打开</span></div>
+          <div class="colo-li"><span>VERSE</span><span>七句古风逐层显现，第八句收于结局</span></div>
+          <div class="colo-sec">操作 / CONTROLS</div>
+          <div class="colo-li"><span>DRAG</span><span>拖动铜镜任一端旋转</span></div>
+          <div class="colo-li"><span>← →</span><span>微调选中铜镜；按住 Shift 加速</span></div>
+          <div class="colo-li"><span>H / R / M</span><span>提示 / 重置本层 / 静音</span></div>
+          <div class="colo-li"><span>SPACE</span><span>开始；过场时继续</span></div>
+          <div class="colo-foot">映河 · YINGHE　/　不借一盏现成的灯</div>
+        </div>
+      </div>
+      <button class="colo-close" id="btnClose">关 闭　/　ESC</button>
+    </div>
+
+    <div id="fatal"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   《传灯 / THE PASSING LAMP》— 映河 / YINGHE
+   A single-file, dependency-free, ray-traced ink game.
+   Every pixel and every sound below is generated at runtime.
+   ===================================================================== */
+const W = 1600, H = 900;
+const Q = Math.max(1.25, Math.min(2, window.devicePixelRatio || 1));
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d', { alpha: false });
+cv.width = Math.round(W * Q); cv.height = Math.round(H * Q);
+ctx.setTransform(Q, 0, 0, Q, 0, 0);
+const frame = document.getElementById('frame');
+const $ = id => document.getElementById(id);
+
+/* ---------- deterministic rng & math ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=t=>t*t*(3-2*t);
+const TAU=Math.PI*2;
+function nrm(x,y){const l=Math.hypot(x,y)||1;return{x:x/l,y:y/l};}
+function angDiff(a,b){let d=(a-b)%TAU;if(d>Math.PI)d-=TAU;if(d<-Math.PI)d+=TAU;return d;}
+function segDist(px,py,ax,ay,bx,by){
+  const dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;
+  let t=l2?((px-ax)*dx+(py-ay)*dy)/l2:0;t=clamp(t,0,1);
+  return Math.hypot(px-(ax+t*dx),py-(ay+t*dy));
+}
+function segCross(ax,ay,bx,by,cx,cy,dx,dy){
+  const s1x=bx-ax,s1y=by-ay,s2x=dx-cx,s2y=dy-cy;
+  const den=-s2x*s1y+s1x*s2y;
+  if(Math.abs(den)<1e-9)return false;
+  const s=(-s1y*(ax-cx)+s1x*(ay-cy))/den;
+  const t=(s2x*(ay-cy)-s2y*(ax-cx))/den;
+  return s>=0&&s<=1&&t>=0&&t<=1;
+}
+/* segment-ray intersection: returns {t,u} with t>eps on ray, 0<=u<=1 on segment */
+function hitSeg(ox,oy,dx,dy,ax,ay,bx,by){
+  const ex=bx-ax,ey=by-ay;
+  const den=dx*ey-dy*ex;
+  if(Math.abs(den)<1e-9)return null;
+  const qx=ax-ox,qy=ay-oy;
+  const t=(qx*ey-qy*ex)/den;
+  const u=(qx*dy-qy*dx)/den;
+  if(t>0.35&&u>=-0.0001&&u<=1.0001)return{t,u,x:ox+dx*t,y:oy+dy*t,ux:ex,uy:ey};
+  return null;
+}
+function hex(c,a){return `rgba(${c[0]},${c[1]},${c[2]},${a})`;}
+const C={paper:[232,226,212],ink:[26,38,46],gold:[255,206,139],core:[255,244,214],
+         ember:[200,80,60],steel:[150,178,192],warm:[246,222,186]};
+
+/* =====================================================================
+   1. AUDIO — pure Web Audio synthesis, not a single audio file
+   ===================================================================== */
+const Audio_={
+  ac:null,master:null,wind:null,drone:[],hum:null,humGain:null,muted:false,ready:false,
+  init(){
+    if(this.ready)return;
+    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+    try{this.ac=new AC();}catch(e){return;}
+    this.master=this.ac.createGain();this.master.gain.value=this.muted?0:.75;
+    this.master.connect(this.ac.destination);
+    this.ready=true;
+    // low night drone
+    [55,82.5,110].forEach((f,i)=>{
+      const o=this.ac.createOscillator(),g=this.ac.createGain();
+      o.type=i===2?'triangle':'sine';o.frequency.value=f;
+      g.gain.value=i===0?.055:i===1?.022:.012;
+      const lfo=this.ac.createOscillator(),lg=this.ac.createGain();
+      lfo.frequency.value=.045+i*.021;lg.gain.value=.012;
+      lfo.connect(lg);lg.connect(g.gain);lfo.start();
+      o.connect(g);g.connect(this.master);o.start();this.drone.push(o);
+    });
+    // filtered noise wind
+    const len=this.ac.sampleRate*4,buf=this.ac.createBuffer(1,len,this.ac.sampleRate),d=buf.getChannelData(0);
+    let last=0;for(let i=0;i<len;i++){const n=Math.random()*2-1;last=last*.985+n*.015;d[i]=last*3.2;}
+    const src=this.ac.createBufferSource();src.buffer=buf;src.loop=true;
+    const bp=this.ac.createBiquadFilter();bp.type='bandpass';bp.frequency.value=340;bp.Q.value=.55;
+    const wg=this.ac.createGain();wg.gain.value=.055;
+    const wl=this.ac.createOscillator(),wlg=this.ac.createGain();
+    wl.frequency.value=.07;wlg.gain.value=.032;wl.connect(wlg);wlg.connect(wg.gain);wl.start();
+    src.connect(bp);bp.connect(wg);wg.connect(this.master);src.start();this.wind=wg;
+    // charge hum
+    const ho=this.ac.createOscillator(),hg=this.ac.createGain();
+    ho.type='sine';ho.frequency.value=392;hg.gain.value=0;
+    ho.connect(hg);hg.connect(this.master);ho.start();this.hum=ho;this.humGain=hg;
+  },
+  resume(){if(this.ac&&this.ac.state==='suspended')this.ac.resume();},
+  setMute(m){this.muted=m;if(this.master)this.master.gain.setTargetAtTime(m?0:.75,this.ac.currentTime,.08);},
+  tone(freq,dur,vol,type,delay,detune){
+    if(!this.ready||this.muted)return;const ac=this.ac,t=ac.currentTime+(delay||0);
+    const o=ac.createOscillator(),g=ac.createGain();
+    o.type=type||'sine';o.frequency.setValueAtTime(freq,t);
+    if(detune)o.frequency.exponentialRampToValueAtTime(Math.max(30,freq*detune),t+dur);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+Math.min(.02,dur*.12));
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g);g.connect(this.master);o.start(t);o.stop(t+dur+.03);
+  },
+  noise(dur,vol,freq,q){
+    if(!this.ready||this.muted)return;const ac=this.ac,t=ac.currentTime;
+    const len=Math.ceil(ac.sampleRate*dur),b=ac.createBuffer(1,len,ac.sampleRate),d=b.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
+    const s=ac.createBufferSource();s.buffer=b;
+    const f=ac.createBiquadFilter();f.type='bandpass';f.frequency.value=freq||1400;f.Q.value=q||1.2;
+    const g=ac.createGain();g.gain.value=vol;
+    s.connect(f);f.connect(g);g.connect(this.master);s.start(t);
+  },
+  click(){this.tone(660,.09,.045,'triangle');this.noise(.05,.018,2200,2);},
+  turn(){this.noise(.055,.012,900,1.6);},
+  bell(){ // 磬: inharmonic partials + low bell
+    [1,2.01,2.98,4.16,5.43].forEach((p,i)=>this.tone(523.25*p,2.6-i*.28,.09/(1+i*.85),'sine',i*.006));
+    this.tone(130.8,3.4,.09,'sine',.02,.985);
+    this.tone(261.6,2.2,.035,'triangle',.05);
+    this.noise(.3,.022,3000,.8);
+  },
+  chord(){ [261.6,293.7,392,440,523.3,587.3].forEach((f,i)=>this.tone(f,2.4,.035,'sine',i*.085)); },
+  finale(){ [261.6,392,523.3,659.3,784,1046.5].forEach((f,i)=>this.tone(f,3.8,.055,'sine',i*.16));
+            this.tone(65.4,6,.11,'sine',0); this.noise(2.5,.02,900,.5); },
+  charge(v){if(!this.ready)return;this.humGain.gain.setTargetAtTime(this.muted?0:v*.055,this.ac.currentTime,.09);
+            this.hum.frequency.setTargetAtTime(392+v*196,this.ac.currentTime,.12);}
+};
+
+/* =====================================================================
+   2. INK RENDERER — paper, mountains, brush strokes, architecture
+      Pre-rendered once per layer into two offscreen canvases:
+      dark (asleep) and lit (awake). Cross-faded by lamp charge.
+   ===================================================================== */
+function newLayerCanvas(){
+  // backdrops are soft ink washes; 1x is enough and keeps 14 layers light in memory
+  const c=document.createElement('canvas');c.width=W;c.height=H;
+  const g=c.getContext('2d');return {c,g};
+}
+function noise1(x,seed){
+  return Math.sin(x*1.71+seed*2.3)*.5+Math.sin(x*.63+seed*5.7)*.31+
+         Math.sin(x*3.9+seed*9.1)*.14+Math.sin(x*.21+seed*1.3)*.22;
+}
+/* a hand-drawn brush line with pressure variation and flying-white gaps */
+function brush(g,x1,y1,x2,y2,width,col,alpha,rng,feibai){
+  const len=Math.hypot(x2-x1,y2-y1),n=Math.max(8,Math.ceil(len/4.2));
+  const dx=(x2-x1)/n,dy=(y2-y1)/n;
+  let prevx=x1,prevy=y1;
+  for(let i=1;i<=n;i++){
+    const t=i/n;
+    const jitter=Math.sin(t*11+rng()*3)*.7;
+    const x=x1+(x2-x1)*t+(-dy/len)*jitter*3;
+    const y=y1+(y2-y1)*t+(dx/len)*jitter*3;
+    if(feibai&&rng()<.075){prevx=x;prevy=y;continue;}
+    const pressure=.42+.58*Math.sin(Math.PI*Math.pow(t,.8));
+    const w=width*pressure*(.78+rng()*.44);
+    g.strokeStyle=hex(col,alpha*(.55+rng()*.45));
+    g.lineWidth=Math.max(.35,w);g.lineCap='round';
+    g.beginPath();g.moveTo(prevx,prevy);g.lineTo(x,y);g.stroke();
+    prevx=x;prevy=y;
+  }
+}
+function wash(g,x,y,r,col,a){
+  const gr=g.createRadialGradient(x,y,0,x,y,r);
+  gr.addColorStop(0,hex(col,a));gr.addColorStop(.45,hex(col,a*.42));gr.addColorStop(1,hex(col,0));
+  g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();
+}
+function paper(g,seed,dark){
+  const gr=g.createLinearGradient(0,0,0,H);
+  if(dark){gr.addColorStop(0,'#080e13');gr.addColorStop(.55,'#0a1219');gr.addColorStop(1,'#060b10');}
+  else{gr.addColorStop(0,'#0d1419');gr.addColorStop(.55,'#111b21');gr.addColorStop(1,'#0a1015');}
+  g.fillStyle=gr;g.fillRect(0,0,W,H);
+  const rng=mulberry32(seed);
+  // paper fibre & grain
+  for(let i=0;i<9000;i++){
+    const x=rng()*W,y=rng()*H,a=rng()*0.020;
+    g.fillStyle=`rgba(${190+rng()*40|0},${200+rng()*40|0},${205+rng()*40|0},${a})`;
+    g.fillRect(x,y,1+rng()*1.6,.7);
+  }
+  for(let i=0;i<150;i++){
+    const y=rng()*H;g.strokeStyle=`rgba(190,205,215,${rng()*.018})`;g.lineWidth=.6;
+    g.beginPath();g.moveTo(rng()*W*.3,y);g.lineTo(W*(.5+rng()*.5),y+(rng()-.5)*3);g.stroke();
+  }
+  // far mountains, four receding ranges
+  for(let k=0;k<4;k++){
+    const base=560+k*38,amp=38-k*7,ph=seed*.7+k*2.6;
+    g.beginPath();g.moveTo(0,H);
+    for(let x=0;x<=W;x+=8){
+      const y=base+noise1(x*.0042+ph,seed+k)*amp+Math.sin(x*.0016+k)*22;
+      g.lineTo(x,y);
+    }
+    g.lineTo(W,H);g.closePath();
+    g.fillStyle=hex(k<2?[24,38,48]:[18,30,39],.10+k*.028);g.fill();
+    g.strokeStyle=hex([120,155,172],.028+k*.008);g.lineWidth=1;g.stroke();
+  }
+  // low mist bands
+  for(let k=0;k<5;k++){
+    const y=490+k*58;const gr2=g.createLinearGradient(0,y-40,0,y+52);
+    gr2.addColorStop(0,'rgba(140,175,190,0)');gr2.addColorStop(.5,`rgba(140,175,190,${.020+k*.004})`);
+    gr2.addColorStop(1,'rgba(140,175,190,0)');g.fillStyle=gr2;g.fillRect(0,y-40,W,92);
+  }
+}
+function architecture(g,seed,dark){
+  const rng=mulberry32(seed+911),col=dark?C.steel:C.warm;
+  const a=dark?.135:.25, a2=dark?.082:.16;
+  const L=120,R=1480,TOP=168,BOT=772;
+  // main columns
+  [L,R].forEach(x=>{
+    brush(g,x,TOP,x,BOT,13,col,a,rng,false);
+    brush(g,x+9,TOP+6,x+9,BOT-6,2.2,col,a2,rng,true);
+    brush(g,x-26,TOP,x+26,TOP,7,col,a*1.2,rng,false);
+    brush(g,x-26,BOT,x+26,BOT,7,col,a*1.2,rng,false);
+  });
+  // upper beam + upturned eaves
+  brush(g,L-34,TOP,R+34,TOP,9,col,a*1.3,rng,false);
+  brush(g,L-34,TOP+15,R+34,TOP+15,2,col,a2,rng,true);
+  [L,R].forEach((x,s)=>{
+    const dir=s===0?-1:1;
+    g.beginPath();g.moveTo(x,TOP);
+    g.quadraticCurveTo(x+dir*46,TOP-24,x+dir*92,TOP-62);
+    g.strokeStyle=hex(col,a*1.5);g.lineWidth=4.5;g.lineCap='round';g.stroke();
+    g.beginPath();g.moveTo(x+dir*92,TOP-62);g.lineTo(x+dir*100,TOP-70);
+    g.strokeStyle=hex(col,a);g.lineWidth=2;g.stroke();
+    // hanging bell
+    const bx=x+dir*74,by=TOP+4;
+    brush(g,bx,by,bx,by+44,1.2,col,a2,rng,false);
+    g.strokeStyle=hex(col,a*1.4);g.lineWidth=1.6;
+    g.beginPath();g.arc(bx,by+52,7,Math.PI,0);g.stroke();
+    g.beginPath();g.moveTo(bx-7,by+52);g.lineTo(bx+7,by+52);g.stroke();
+  });
+  // dougong brackets
+  for(let x=L+70;x<R-40;x+=118){
+    brush(g,x-16,TOP+2,x+16,TOP+2,3,col,a2,rng,false);
+    brush(g,x-10,TOP+9,x+10,TOP+9,2.4,col,a2,rng,false);
+    brush(g,x,TOP+2,x,TOP+26,1.6,col,a2,rng,false);
+  }
+  // floor & balustrade
+  brush(g,L-30,BOT,R+30,BOT,6,col,a*1.2,rng,false);
+  brush(g,L-30,BOT+14,R+30,BOT+14,1.6,col,a2,rng,true);
+  for(let x=L+30;x<R-20;x+=64){
+    brush(g,x,BOT-16,x,BOT,2,col,a2,rng,false);
+  }
+  brush(g,L,BOT-16,R,BOT-16,2,col,a2,rng,true);
+  // back lattice windows (upper band, purely decorative)
+  for(let k=0;k<5;k++){
+    const x=300+k*250,y=210,w=118,h=76;
+    g.strokeStyle=hex(col,dark?.036:.10);g.lineWidth=1.2;
+    g.strokeRect(x,y,w,h);
+    for(let j=1;j<4;j++){g.beginPath();g.moveTo(x+j*w/4,y);g.lineTo(x+j*w/4,y+h);g.stroke();}
+    for(let j=1;j<3;j++){g.beginPath();g.moveTo(x,y+j*h/3);g.lineTo(x+w,y+j*h/3);g.stroke();}
+  }
+  // wispy hanging banners
+  for(let k=0;k<3;k++){
+    const x=380+k*410;
+    brush(g,x,TOP+28,x+(rng()-.5)*16,TOP+120+(rng()*40),1.1,col,dark?.03:.11,rng,true);
+  }
+  // ink splashes / dry texture
+  for(let i=0;i<70;i++){
+    const x=rng()*W,y=BOT-40+rng()*90,r=rng()*2.4;
+    g.fillStyle=hex(col,rng()*(dark?.045:.11));
+    g.beginPath();g.arc(x,y,r,0,TAU);g.fill();
+  }
+}
+function drawStone(g,s,dark){
+  const rng=mulberry32(Math.floor(s.x*7+s.y*3));
+  const col=dark?C.steel:C.warm, a=dark?.16:.28;
+  brush(g,s.ax,s.ay,s.bx,s.by,9,col,a,rng,true);
+  brush(g,s.ax+3,s.ay+2,s.bx+3,s.by+2,2,col,a*.6,rng,true);
+  const mx=(s.ax+s.bx)/2,my=(s.ay+s.by)/2;
+  wash(g,mx,my,26,col,dark?.010:.026);
+}
+function buildBackdrop(level,dark){
+  const o=newLayerCanvas(),g=o.g;
+  paper(g,level.seed,dark);
+  architecture(g,level.seed,dark);
+  level.walls.forEach(s=>drawStone(g,s,dark));
+  // faint horizontal rule of the layer
+  g.strokeStyle=hex(dark?C.steel:C.warm,dark?.035:.10);g.lineWidth=1;
+  g.beginPath();g.moveTo(60,814);g.lineTo(1540,814);g.stroke();
+  return o.c;
+}
+
+/* =====================================================================
+   3. LEVELS — paths are authored first, mirrors are SOLVED from them.
+      normal ∝ (d_in - d_out) guarantees an exact solution for each layer.
+   ===================================================================== */
+const RAW=[
+ {seed:1107, cone:.205, mlen:132, jit:.34,
+  path:[[210,630],[770,290],[1385,620]],
+  v:'山色沉沉闭一灯', en:'ONE LAMP AGAINST THE DARK MOUNTAIN',
+  hint:'光只认方向，不认远近。先转动那一面铜镜。'},
+ {seed:2213, cone:.188, mlen:126, jit:.44,
+  path:[[205,300],[640,300],[640,650],[1385,650]],
+  v:'风来欲借半分明', en:'THE WIND ASKS FOR A SHARE OF IT',
+  hint:'两折之间，让两面镜遥遥相向。'},
+ {seed:3301, cone:.172, mlen:120, jit:.52,
+  path:[[200,665],[510,665],[510,270],[1070,270],[1385,610]],
+  v:'铜镜不言能转照', en:'BRASS TURNS WITHOUT A WORD',
+  hint:'每一折，都是一次转身。从靠左的一面起。'},
+ {seed:4427, cone:.156, mlen:114, jit:.60,
+  path:[[210,265],[700,265],[700,700],[1120,700],[1385,350]],
+  v:'曲廊九折引孤行', en:'NINE BENDS, A SINGLE THREAD',
+  hint:'先立起最低处那面镜，再回头校准上游。'},
+ {seed:5531, cone:.140, mlen:108, jit:.66,
+  path:[[200,700],[470,700],[470,290],[850,290],[850,665],[1385,410]],
+  v:'人间几度更薪火', en:'HOW MANY HANDS HAVE CARRIED THIS',
+  hint:'自上而下逐面校准，末镜决定最后的落点。'},
+ {seed:6649, cone:.124, mlen:102, jit:.72,
+  path:[[210,290],[555,290],[555,665],[975,665],[975,275],[1385,565]],
+  v:'塔上无人亦自明', en:'NO ONE WAITS, AND STILL IT BURNS',
+  hint:'最后一线须越过自己的来路，别急着定末镜。'},
+ {seed:7753, cone:.108, mlen:96, jit:.80,
+  path:[[200,660],[425,660],[425,255],[755,255],[755,660],[1085,660],[1085,300],[1385,470]],
+  v:'待到千窗齐亮处', en:'A THOUSAND WINDOWS ANSWER',
+  hint:'七面皆备。把这一束光，交给整座塔。'},
+];
+const FINAL_VERSE='始知长夜是平生';
+const ROMAN=['I','II','III','IV','V','VI','VII'];
+const CJK=['一','二','三','四','五','六','七'];
+
+function makeWalls(path,seed){
+  const rng=mulberry32(seed*13+7),out=[],cand=[];
+  for(let i=0;i<220;i++){
+    const vert=rng()<.55;
+    const x=300+rng()*1000,y=205+rng()*510,len=60+rng()*130;
+    const a={ax:x,ay:y,bx:vert?x+(rng()-.5)*14:x+len,by:vert?y+len:y+(rng()-.5)*14};
+    a.x=(a.ax+a.bx)/2;a.y=(a.ay+a.by)/2;cand.push(a);
+  }
+  // A wall must never cut the authored light path. Endpoint distance alone is
+  // not enough: two long segments can cross in their middles while all four
+  // endpoints stay far apart. Check the true intersection plus sampled points.
+  const clear=s=>{
+    for(let i=0;i<path.length-1;i++){
+      const p=path[i],q=path[i+1];
+      if(segCross(s.ax,s.ay,s.bx,s.by,p[0],p[1],q[0],q[1]))return false;
+      for(let u=0;u<=1.0001;u+=.2){
+        if(segDist(s.ax+(s.bx-s.ax)*u,s.ay+(s.by-s.ay)*u,p[0],p[1],q[0],q[1])<54)return false;
+        if(segDist(p[0]+(q[0]-p[0])*u,p[1]+(q[1]-p[1])*u,s.ax,s.ay,s.bx,s.by)<54)return false;
+      }
+    }
+    return true;
+  };
+  for(const s of cand){
+    if(!clear(s))continue;
+    let tooClose=false;
+    for(const t of out)if(Math.hypot(s.x-t.x,s.y-t.y)<155){tooClose=true;break;}
+    if(tooClose)continue;
+    out.push(s);
+    if(out.length>=3)break;
+  }
+  return out;
+}
+function buildLevel(raw,idx){
+  const path=raw.path.map(p=>({x:p[0],y:p[1]}));
+  const rng=mulberry32(raw.seed+33);
+  // makeWalls works on the raw [x,y] pairs, not the {x,y} objects in lv.path
+  const lv={...raw,index:idx,path,walls:makeWalls(raw.path,raw.seed),mirrors:[],
+            source:path[0],target:path[path.length-1],lit:0,charge:0,solved:false,hinted:0};
+  // solve mirror orientation from the polyline
+  for(let i=1;i<path.length-1;i++){
+    const p0=path[i-1],p1=path[i],p2=path[i+1];
+    const din=nrm(p1.x-p0.x,p1.y-p0.y),dout=nrm(p2.x-p1.x,p2.y-p1.y);
+    const n=nrm(din.x-dout.x,din.y-dout.y);       // surface normal
+    const correct=Math.atan2(n.y,n.x)+Math.PI/2;   // tangent angle
+    const jitter=(rng()<.5?-1:1)*raw.jit*(.7+rng()*.6);
+    lv.mirrors.push({x:p1.x,y:p1.y,angle:correct+jitter,correct,len:raw.mlen,
+                     selected:false,hover:false,glow:0});
+  }
+  lv.bgDark=null;lv.bgLit=null;   // built lazily on first entry to keep boot instant
+  return lv;
+}
+const LEVELS=RAW.map(buildLevel);
+
+/* =====================================================================
+   4. OPTICS — per-frame cone ray tracing with mirror reflection
+   ===================================================================== */
+const RAYS=45, MAX_DEPTH=8, MAXD=2400;
+function mirrorEnds(m){
+  const c=Math.cos(m.angle)*m.len/2,s=Math.sin(m.angle)*m.len/2;
+  return {ax:m.x-c,ay:m.y-s,bx:m.x+c,by:m.y+s};
+}
+function buildScene(lv){
+  const s=[];
+  lv.mirrors.forEach((m,i)=>{const e=mirrorEnds(m);s.push({...e,type:'mirror',mi:i});});
+  lv.walls.forEach(w=>s.push({...w,type:'wall'}));
+  return s;
+}
+function trace(scene,ox,oy,dx,dy,I0){
+  const segs=[];
+  let px=ox,py=oy,dxr=dx,dyr=dy,I=I0;
+  for(let k=0;k<MAX_DEPTH;k++){
+    let best=null,bt=MAXD;
+    for(const s of scene){
+      const h=hitSeg(px,py,dxr,dyr,s.ax,s.ay,s.bx,s.by);
+      if(h&&h.t<bt){bt=h.t;best={...h,s};}
+    }
+    if(!best){
+      segs.push({ax:px,ay:py,bx:px+dxr*MAXD,by:py+dyr*MAXD,I,d:k,end:'void'});break;
+    }
+    segs.push({ax:px,ay:py,bx:best.x,by:best.y,I,d:k,end:best.s.type,mi:best.s.mi});
+    if(best.s.type==='wall')break;
+    const n=nrm(-best.uy,best.ux);
+    const dot=dxr*n.x+dyr*n.y;
+    dxr-=2*dot*n.x;dyr-=2*dot*n.y;
+    const nn=nrm(dxr,dyr);dxr=nn.x;dyr=nn.y;
+    px=best.x+dxr*.7;py=best.y+dyr*.7;
+    I*=.905;
+    if(I<.035)break;
+  }
+  return segs;
+}
+function cast(lv){
+  const scene=buildScene(lv);
+  const base=Math.atan2(lv.path[1].y-lv.source.y,lv.path[1].x-lv.source.x);
+  const all=[];let center=null;
+  const mid=(RAYS-1)/2;
+  for(let i=0;i<RAYS;i++){
+    const a=base+((i-mid)/mid)*lv.cone;
+    const segs=trace(scene,lv.source.x,lv.source.y,Math.cos(a),Math.sin(a),1);
+    all.push(segs);
+    if(i===mid)center=segs;
+  }
+  // A stray beam that merely sweeps past the wick is NOT a solution: the
+  // centre ray must pass through every mirror in the authored chain.
+  const reflections=center.filter(s=>s.end==='mirror').length;
+  let hit=false,hitAt=null;
+  if(reflections===lv.mirrors.length){
+    for(const s of center){
+      if(s.I<.25)continue;
+      if(segDist(lv.target.x,lv.target.y,s.ax,s.ay,s.bx,s.by)<21){
+        hit=true;hitAt={x:lv.target.x,y:lv.target.y};break;
+      }
+    }
+  }
+  return {scene,all,center,hit,hitAt,base,reflections};
+}
+
+/* =====================================================================
+   5. DUST — motes that only become visible inside the beam
+   ===================================================================== */
+const dust=[];
+(function(){const r=mulberry32(90210);for(let i=0;i<190;i++)
+  dust.push({x:r()*W,y:r()*H,z:.3+r()*.9,vx:(r()-.5)*.16,vy:-.06-r()*.16,ph:r()*TAU});})();
+function updateDust(dt){
+  for(const p of dust){
+    p.x+=p.vx*dt*60;p.y+=p.vy*dt*60;
+    if(p.y<120){p.y=H-90;p.x=Math.random()*W;}
+    if(p.x<0)p.x+=W;if(p.x>W)p.x-=W;
+  }
+}
+function drawDust(g,segs,t){
+  g.save();g.globalCompositeOperation='lighter';
+  for(const p of dust){
+    let near=0;
+    for(const s of segs){
+      const d=segDist(p.x,p.y,s.ax,s.ay,s.bx,s.by);
+      if(d<46){near=Math.max(near,(1-d/46)*s.I);break;}
+    }
+    const tw=.55+.45*Math.sin(t*1.7+p.ph);
+    const a=near*.55*tw*p.z;
+    if(a<.012)continue;
+    g.fillStyle=hex(C.core,a);
+    g.beginPath();g.arc(p.x,p.y,.7+p.z*1.1,0,TAU);g.fill();
+    if(a>.16){wash(g,p.x,p.y,7,C.gold,a*.30);}
+  }
+  g.restore();
+}
+
+/* =====================================================================
+   6. OBJECT DRAWING
+   ===================================================================== */
+function drawLampSource(g,x,y,t,lit){
+  g.save();
+  wash(g,x,y,88,C.gold,.10+lit*.05);
+  wash(g,x,y,30,C.core,.20);
+  // hanging cord
+  g.strokeStyle=hex(C.steel,.20);g.lineWidth=1;
+  g.beginPath();g.moveTo(x,y-22);g.lineTo(x,140);g.stroke();
+  // lantern body
+  g.strokeStyle=hex(C.warm,.42);g.lineWidth=1.6;
+  g.beginPath();g.ellipse(x,y,15,19,0,0,TAU);g.stroke();
+  g.beginPath();g.moveTo(x-15,y);g.lineTo(x+15,y);g.stroke();
+  g.strokeStyle=hex(C.warm,.25);
+  g.beginPath();g.moveTo(x-8,y-19);g.lineTo(x-8,y+19);g.moveTo(x+8,y-19);g.lineTo(x+8,y+19);g.stroke();
+  // flame
+  const f=.86+.14*Math.sin(t*7.3);
+  wash(g,x,y,20,C.core,.34*f);
+  g.fillStyle=hex(C.core,.9*f);
+  g.beginPath();g.moveTo(x,y-9*f);g.quadraticCurveTo(x+6,y-1,x,y+7);
+  g.quadraticCurveTo(x-6,y-1,x,y-9*f);g.fill();
+  g.restore();
+}
+function drawTarget(g,x,y,t,charge,lit){
+  g.save();
+  const glow=lit?1:charge*.75;
+  wash(g,x,y,70+charge*40,C.gold,.05+glow*.20);
+  if(lit)wash(g,x,y,28,C.core,.34);
+  // lamp bowl
+  g.strokeStyle=hex(lit?C.warm:C.ember,.5+glow*.4);g.lineWidth=2;
+  g.beginPath();g.moveTo(x-22,y+4);g.quadraticCurveTo(x,y+24,x+22,y+4);g.stroke();
+  g.beginPath();g.moveTo(x-27,y+4);g.lineTo(x+27,y+4);g.stroke();
+  g.beginPath();g.moveTo(x,y+20);g.lineTo(x,y+27);g.stroke();
+  // wick / flame
+  const f=.8+.2*Math.sin(t*5.1);
+  if(glow>.01){
+    g.fillStyle=hex(C.core,glow*.95*f);
+    g.beginPath();g.moveTo(x,y-16*f*glow);
+    g.quadraticCurveTo(x+8*glow,y,x,y+4);
+    g.quadraticCurveTo(x-8*glow,y,x,y-16*f*glow);g.fill();
+    wash(g,x,y,16,C.gold,glow*.4);
+  }else{
+    g.strokeStyle=hex(C.ember,.65);g.lineWidth=1.4;
+    g.beginPath();g.arc(x,y-3,4,0,TAU);g.stroke();
+  }
+  // ring indicating the target
+  g.strokeStyle=hex(lit?C.gold:C.ember,.18+glow*.25);g.lineWidth=1;
+  g.beginPath();g.arc(x,y-3,34+Math.sin(t*1.6)*2,0,TAU);g.stroke();
+  g.restore();
+}
+function drawMirror(g,m,i,t,lit){
+  const e=mirrorEnds(m);
+  const off=Math.abs(angDiff(m.angle,m.correct));
+  const aligned=off<.022;
+  const active=m.selected||m.hover;
+  g.save();
+  // rotational guide arc when selected
+  if(active){
+    g.strokeStyle=hex(C.gold,.16);g.lineWidth=1;
+    g.beginPath();g.arc(m.x,m.y,m.len*.72,m.angle-1.15,m.angle+1.15);g.stroke();
+    for(let k=-3;k<=3;k++){
+      const a=m.angle+k*.32;
+      g.beginPath();
+      g.moveTo(m.x+Math.cos(a)*m.len*.68,m.y+Math.sin(a)*m.len*.68);
+      g.lineTo(m.x+Math.cos(a)*m.len*.76,m.y+Math.sin(a)*m.len*.76);
+      g.stroke();
+    }
+    // the correct angle, only shown once a hint has been used
+    if(m.hinted){
+      g.strokeStyle=hex(C.ember,.42);g.lineWidth=1.2;
+      const a=m.correct,r=m.len*.58;
+      g.beginPath();g.moveTo(m.x+Math.cos(a)*r,m.y+Math.sin(a)*r);
+      g.lineTo(m.x+Math.cos(a)*(r+16),m.y+Math.sin(a)*(r+16));g.stroke();
+    }
+  }
+  // soft halo + a dashed ring saying "this can be turned"
+  wash(g,m.x,m.y,42,C.gold,active?.10:.038+lit*.02);
+  g.strokeStyle=hex(C.gold,active?.34:.22);g.lineWidth=1;
+  g.setLineDash([3,5]);
+  g.beginPath();g.arc(m.x,m.y,18,0,TAU);g.stroke();
+  g.setLineDash([]);
+  // mirror back hatching
+  const nx=-Math.sin(m.angle),ny=Math.cos(m.angle);
+  g.strokeStyle=hex(aligned?C.gold:C.steel,active?.42:.24);g.lineWidth=1;
+  for(let k=-3;k<=3;k++){
+    const px=m.x+Math.cos(m.angle)*k*13,py=m.y+Math.sin(m.angle)*k*13;
+    g.beginPath();g.moveTo(px,py);g.lineTo(px+nx*8,py+ny*8);g.stroke();
+  }
+  // mirror body
+  g.lineCap='round';
+  g.strokeStyle=hex(aligned?C.core:C.warm,.30+active*.35);g.lineWidth=7;
+  g.beginPath();g.moveTo(e.ax,e.ay);g.lineTo(e.bx,e.by);g.stroke();
+  g.strokeStyle=hex(aligned?C.gold:C.steel,.60+active*.35);g.lineWidth=2.4;
+  g.beginPath();g.moveTo(e.ax,e.ay);g.lineTo(e.bx,e.by);g.stroke();
+  // highlight along the reflecting face
+  g.strokeStyle=hex(C.core,.35+active*.35);g.lineWidth=1;
+  g.beginPath();g.moveTo(e.ax+nx*3,e.ay+ny*3);g.lineTo(e.bx+nx*3,e.by+ny*3);g.stroke();
+  // end rivets
+  [[e.ax,e.ay],[e.bx,e.by]].forEach(p=>{
+    g.fillStyle=hex(active?C.gold:C.steel,.72);
+    g.beginPath();g.arc(p[0],p[1],active?4:3,0,TAU);g.fill();
+  });
+  // pivot
+  g.fillStyle=hex(aligned?C.gold:C.ember,.85);
+  g.beginPath();g.arc(m.x,m.y,2.6,0,TAU);g.fill();
+  if(active){
+    g.strokeStyle=hex(C.gold,.35);g.lineWidth=1;
+    g.beginPath();g.arc(m.x,m.y,9,0,TAU);g.stroke();
+  }
+  // index number
+  g.font='11px Consolas, monospace';g.textAlign='center';
+  g.fillStyle=hex(active?C.gold:C.steel,active?.85:.62);
+  g.fillText(String(i+1).padStart(2,'0'),m.x-nx*26,m.y-ny*26+4);
+  g.restore();
+}
+function drawBeam(g,castData,t){
+  g.save();g.globalCompositeOperation='lighter';g.lineCap='round';
+  for(const segs of castData.all){
+    for(const s of segs){
+      const len=Math.hypot(s.bx-s.ax,s.by-s.ay);if(len<1)continue;
+      const fade=Math.min(1,620/(len+380));
+      // rays bunch up near the source; hold them back so the cone never
+      // burns into a solid white wedge
+      const a=s.I*fade*(s.d===0?.70:1);
+      if(s.end==='void'){
+        // light escaping into the night dissolves instead of ending on a hard edge
+        const f=Math.min(1,780/len),ex=s.ax+(s.bx-s.ax)*f,ey=s.ay+(s.by-s.ay)*f;
+        const gr=g.createLinearGradient(s.ax,s.ay,ex,ey);
+        gr.addColorStop(0,hex(C.gold,a*.022));gr.addColorStop(.5,hex(C.gold,a*.009));
+        gr.addColorStop(1,hex(C.gold,0));
+        g.strokeStyle=gr;g.lineWidth=13+s.d*2;
+        g.beginPath();g.moveTo(s.ax,s.ay);g.lineTo(ex,ey);g.stroke();
+        const gr2=g.createLinearGradient(s.ax,s.ay,ex,ey);
+        gr2.addColorStop(0,hex(C.core,a*.105));gr2.addColorStop(1,hex(C.core,0));
+        g.strokeStyle=gr2;g.lineWidth=1.05;
+        g.beginPath();g.moveTo(s.ax,s.ay);g.lineTo(ex,ey);g.stroke();
+        continue;
+      }
+      const line=()=>{g.beginPath();g.moveTo(s.ax,s.ay);g.lineTo(s.bx,s.by);g.stroke();};
+      // faint scattering halo
+      g.strokeStyle=hex(C.gold,a*.009);g.lineWidth=19+s.d*3.4;line();
+      // soft body
+      g.strokeStyle=hex(C.gold,a*.026);g.lineWidth=4.5+s.d*.9;line();
+      // the actual drawing: a bundle of fine light threads
+      g.strokeStyle=hex(C.core,a*.120);g.lineWidth=1.1;line();
+    }
+  }
+  // bloom where light strikes brass — sampled, not every ray, to stay at 60fps
+  for(let ri=0;ri<castData.all.length;ri+=3){
+    for(const s of castData.all[ri]){
+      if(s.d===0||s.end!=='mirror')continue;
+      wash(g,s.ax,s.ay,19,C.gold,s.I*.026);
+      wash(g,s.ax,s.ay,6,C.core,s.I*.070);
+    }
+  }
+  wash(g,LEVELS[game.layer].source.x,LEVELS[game.layer].source.y,54,C.gold,.060);
+  g.restore();
+}
+
+/* =====================================================================
+   7. ENDING / TITLE SCENES
+   ===================================================================== */
+function drawTitleScene(g,t){
+  g.fillStyle='#070c10';g.fillRect(0,0,W,H);
+  const rng=mulberry32(7);
+  for(let k=0;k<3;k++){
+    g.beginPath();g.moveTo(0,H);
+    for(let x=0;x<=W;x+=10){g.lineTo(x,640+k*44+noise1(x*.003+k,4)*30);}
+    g.lineTo(W,H);g.closePath();g.fillStyle=`rgba(18,30,40,${.20-k*.05})`;g.fill();
+  }
+  const b=.72+.28*Math.sin(t*1.25);
+  wash(g,W/2,H/2+40,250,C.gold,.030*b);
+  wash(g,W/2,H/2+40,80,C.gold,.045*b);
+  wash(g,W/2,H/2+40,18,C.core,.16*b);
+  // no literal lamp on the title card — the glow behind the characters
+  // carries the idea without putting a stray mark between the two glyphs
+  g.save();g.globalCompositeOperation='lighter';
+  wash(g,W/2,H/2-196,66,C.gold,.032*b);
+  g.restore();
+  // slow motes
+  g.globalCompositeOperation='lighter';
+  for(const p of dust){
+    const a=(.5+.5*Math.sin(t*1.3+p.ph))*.07*p.z;
+    g.fillStyle=hex(C.gold,a);g.beginPath();g.arc(p.x,p.y,p.z,0,TAU);g.fill();
+  }
+  g.globalCompositeOperation='source-over';
+}
+function drawEndingScene(g,t){
+  g.fillStyle='#060a0e';g.fillRect(0,0,W,H);
+  // distant ranges
+  for(let k=0;k<4;k++){
+    g.beginPath();g.moveTo(0,H);
+    for(let x=0;x<=W;x+=8){g.lineTo(x,650+k*36+noise1(x*.0038+k,13)*34);}
+    g.lineTo(W,H);g.closePath();g.fillStyle=`rgba(16,28,38,${.30-k*.055})`;g.fill();
+  }
+  const cx=1030,base=792,tier=88;
+  // reflection on water
+  g.save();g.globalCompositeOperation='lighter';
+  for(let i=0;i<26;i++){
+    const y=806+i*3.6,w=170-i*4.5;
+    g.fillStyle=hex(C.gold,.018*(1-i/26));
+    g.fillRect(cx-w/2,y,w,1.6);
+  }
+  g.restore();
+  for(let k=0;k<7;k++){
+    const y=base-k*tier,w=308-k*25,lit=clamp(t*1.9-k*.22,0,1);
+    // roof / upturned eaves
+    g.strokeStyle=hex(C.warm,.22+lit*.55);g.lineWidth=3;g.lineCap='round';
+    g.beginPath();g.moveTo(cx-w/2-24,y-tier+16);
+    g.quadraticCurveTo(cx-w/2,y-tier+6,cx,y-tier+2);
+    g.quadraticCurveTo(cx+w/2,y-tier+6,cx+w/2+24,y-tier+16);g.stroke();
+    g.strokeStyle=hex(C.warm,.10+lit*.30);g.lineWidth=1.2;
+    g.beginPath();g.moveTo(cx-w/2-10,y-tier+22);g.lineTo(cx+w/2+10,y-tier+22);g.stroke();
+    // body
+    g.fillStyle=`rgba(10,17,23,${.85})`;g.fillRect(cx-w/2,y-tier+22,w,tier-22);
+    g.strokeStyle=hex(C.steel,.10+lit*.24);g.lineWidth=1;
+    g.strokeRect(cx-w/2,y-tier+22,w,tier-22);
+    // columns
+    [-1,0,1].forEach(j=>{
+      const x=cx+j*w*.31;
+      g.strokeStyle=hex(C.warm,.08+lit*.30);g.lineWidth=2;
+      g.beginPath();g.moveTo(x,y-tier+24);g.lineTo(x,y);g.stroke();
+    });
+    // windows — this is what "a thousand windows answer" means
+    const n=5;
+    g.save();g.globalCompositeOperation='lighter';
+    for(let j=0;j<n;j++){
+      const x=cx-w*.38+j*(w*.76/(n-1));
+      const a=lit*(.55+.45*Math.sin(t*2.1+j*1.7+k));
+      wash(g,x,y-tier/2-4,17,C.gold,.22*a);
+      g.fillStyle=hex(C.core,.62*a);
+      g.fillRect(x-3,y-tier/2-11,6,14);
+    }
+    g.restore();
+  }
+  // finial
+  const topY=base-7*tier-14;
+  g.save();g.globalCompositeOperation='lighter';
+  wash(g,cx,topY,70,C.gold,.20*clamp(t*1.2,0,1));
+  wash(g,cx,topY,16,C.core,.55*clamp(t*1.2,0,1));
+  g.restore();
+  g.strokeStyle=hex(C.warm,.6);g.lineWidth=2;
+  g.beginPath();g.moveTo(cx,topY+14);g.lineTo(cx,topY-16);g.stroke();
+  g.beginPath();g.arc(cx,topY-20,6,0,TAU);g.stroke();
+  // rising sparks
+  g.save();g.globalCompositeOperation='lighter';
+  for(const p of dust){
+    const x=cx+(p.x-W/2)*.42,y=((p.y+t*34*p.z)%(H+100));
+    const a=.035+.055*Math.sin(t*1.5+p.ph);
+    g.fillStyle=hex(C.gold,Math.max(0,a));g.beginPath();g.arc(x,y,p.z,0,TAU);g.fill();
+  }
+  g.restore();
+  g.fillStyle='rgba(0,0,0,.18)';g.fillRect(0,0,W,H);
+}
+
+/* =====================================================================
+   8. STATE / UI
+   ===================================================================== */
+const game={state:'title',layer:0,about:false,muted:false,litCount:0,
+            selected:-1,dragging:false,dragOffset:0,t:0,cast:null,
+            verseAt:0,verseReady:false,endT:0,toastT:0,hint:null,solveAt:0};
+let SCALE=1;
+const screens={title:$('title'),verse:$('verse'),ending:$('ending'),colophon:$('colophon')};
+function show(el,on){el.classList.toggle('on',on);}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('on');game.toastT=2.2;}
+function setHud(on){$('hud').classList.toggle('on',on);}
+function syncHud(){
+  const lv=LEVELS[game.layer];
+  $('hLayer').textContent=`第${CJK[lv.index]}层`;
+  $('hRom').textContent=`LAYER ${ROMAN[lv.index]} / VII`;
+  $('hCount').textContent=`${String(game.litCount).padStart(2,'0')} / 07`;
+  const pp=$('pips');if(pp.children.length!==7){pp.innerHTML='';for(let i=0;i<7;i++){const d=document.createElement('div');d.className='pip';pp.appendChild(d);}}
+  [...pp.children].forEach((d,i)=>d.classList.toggle('lit',i<game.litCount));
+  $('chargeBar').style.width=(lv.charge*100).toFixed(1)+'%';
+  $('lumen').textContent=lv.charge.toFixed(2);
+  let txt;
+  if(game.selected>=0){
+    const m=lv.mirrors[game.selected],off=Math.abs(angDiff(m.angle,m.correct));
+    txt=`镜面 ${String(game.selected+1).padStart(2,'0')} · 偏差 ${(off*180/Math.PI).toFixed(1)}°`+
+        (off<.022?'　✓ 已对准':'');
+  }else txt=`镜面 ${String(lv.mirrors.length).padStart(2,'0')} 面 · 待校准`;
+  $('readout').textContent=txt;
+  $('btnMute').textContent=game.muted?'M · 取消静音':'M · 静音';
+}
+function enterLayer(i){
+  game.layer=i;game.selected=-1;game.dragging=false;game.hint=null;game.verseReady=false;
+  const lv=LEVELS[i];
+  if(!lv.bgDark){lv.bgDark=buildBackdrop(lv,true);lv.bgLit=buildBackdrop(lv,false);}
+  lv.mirrors.forEach(m=>{m.selected=false;m.hover=false;m.hinted=false;});
+  lv.charge=0;
+  game.state='play';
+  show(screens.verse,false);show(screens.ending,false);
+  setHud(true);syncHud();
+  Audio_.charge(0);
+}
+function resetLayer(){
+  const lv=LEVELS[game.layer],rng=mulberry32(lv.seed+33);
+  lv.mirrors.forEach(m=>{
+    m.angle=m.correct+(rng()<.5?-1:1)*lv.jit*(.7+rng()*.6);
+    m.selected=false;m.hinted=false;
+  });
+  lv.charge=0;lv.lit=0;game.selected=-1;game.hint=null;
+  Audio_.click();toast('本层已重置 · 光路归零');syncHud();
+}
+function useHint(){
+  if(game.state!=='play')return;
+  const lv=LEVELS[game.layer];
+  let worst=-1,off=0;
+  lv.mirrors.forEach((m,i)=>{const d=Math.abs(angDiff(m.angle,m.correct));if(d>off){off=d;worst=i;}});
+  if(worst<0){toast('此层光路已通');return;}
+  lv.mirrors[worst].hinted=true;
+  game.hint={i:worst,from:lv.mirrors[worst].angle,t:0};
+  game.selected=worst;
+  lv.mirrors.forEach((m,i)=>m.selected=i===worst);
+  Audio_.click();toast(`第 ${worst+1} 面铜镜 · 正在归位`);
+}
+function solved(){
+  const lv=LEVELS[game.layer];
+  if(lv.solved)return;
+  lv.solved=true;game.litCount++;game.solveAt=game.t;
+  Audio_.bell();Audio_.chord();Audio_.charge(0);
+  setHud(false);
+  syncHud();
+}
+function showVerse(){
+  const lv=LEVELS[game.layer];
+  $('vNo').textContent=`LAYER ${ROMAN[lv.index]} · ${['灯 起','风 至','镜 转','廊 回','薪 继','空 明','千 窗'][lv.index]}`;
+  $('vZh').textContent=lv.v;$('vEn').textContent=lv.en;
+  game.state='verse';game.verseAt=game.t;game.verseReady=false;
+  show(screens.verse,true);
+}
+function next(){
+  if(game.layer<LEVELS.length-1)enterLayer(game.layer+1);
+  else{
+    game.state='ending';game.endT=0;
+    show(screens.verse,false);setHud(false);
+    $('endPoem').innerHTML=LEVELS.map(l=>l.v).join('<br>')+'<br><br><em>'+FINAL_VERSE+'</em>';
+    show(screens.ending,true);
+    Audio_.finale();
+  }
+}
+function start(){
+  Audio_.init();Audio_.resume();Audio_.click();
+  show(screens.title,false);show(screens.ending,false);
+  game.litCount=0;
+  LEVELS.forEach(l=>{l.solved=false;l.lit=0;l.charge=0;});
+  enterLayer(0);
+  toast(LEVELS[0].hint);
+}
+function toggleAbout(on){
+  game.about=on;show(screens.colophon,on);
+  if(on)Audio_.click();
+}
+function setMute(){
+  game.muted=!game.muted;Audio_.setMute(game.muted);syncHud();
+}
+
+/* ---------- pointer / keyboard ---------- */
+function toLocal(e){
+  const r=frame.getBoundingClientRect();
+  return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};
+}
+function pickMirror(p){
+  if(game.state!=='play')return -1;
+  const lv=LEVELS[game.layer];let best=-1,bd=42;
+  lv.mirrors.forEach((m,i)=>{
+    const e=mirrorEnds(m);
+    const d=segDist(p.x,p.y,e.ax,e.ay,e.bx,e.by);
+    if(d<bd){bd=d;best=i;}
+  });
+  return best;
+}
+cv.addEventListener('pointerdown',e=>{
+  if(game.about)return;
+  if(game.state==='verse'){if(game.verseReady)next();return;}
+  if(game.state!=='play')return;
+  Audio_.resume();
+  const p=toLocal(e),i=pickMirror(p);
+  if(i>=0){
+    const lv=LEVELS[game.layer],m=lv.mirrors[i];
+    game.selected=i;game.dragging=true;
+    game.dragOffset=Math.atan2(p.y-m.y,p.x-m.x)-m.angle;
+    lv.mirrors.forEach((mm,k)=>mm.selected=k===i);
+    cv.setPointerCapture(e.pointerId);
+    Audio_.click();
+  }else{game.selected=-1;LEVELS[game.layer].mirrors.forEach(m=>m.selected=false);}
+  syncHud();
+});
+cv.addEventListener('pointermove',e=>{
+  const p=toLocal(e);
+  if(game.state!=='play'||game.about)return;
+  const lv=LEVELS[game.layer];
+  const h=pickMirror(p);
+  lv.mirrors.forEach((m,i)=>m.hover=i===h);
+  cv.style.cursor=h>=0?'grab':'default';
+  if(game.dragging&&game.selected>=0){
+    const m=lv.mirrors[game.selected];
+    let a=Math.atan2(p.y-m.y,p.x-m.x)-game.dragOffset;
+    a=m.correct+angDiff(a,m.correct);
+    if(Math.abs(angDiff(a,m.angle))>.012)Audio_.turn();
+    m.angle=a;game.hint=null;
+    cv.style.cursor='grabbing';
+  }
+});
+function endDrag(e){game.dragging=false;cv.style.cursor='default';try{cv.releasePointerCapture(e.pointerId);}catch(_){}}
+cv.addEventListener('pointerup',endDrag);
+cv.addEventListener('pointercancel',endDrag);
+window.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){toggleAbout(false);return;}
+  if(game.about)return;
+  if(e.key===' '||e.key==='Enter'){
+    e.preventDefault();
+    if(game.state==='title')start();
+    else if(game.state==='verse'&&game.verseReady)next();
+    return;
+  }
+  if(e.key==='m'||e.key==='M'){setMute();return;}
+  if(game.state==='verse'){if(game.verseReady)next();return;}
+  if(game.state!=='play')return;
+  if(e.key==='h'||e.key==='H'){useHint();return;}
+  if(e.key==='r'||e.key==='R'){resetLayer();return;}
+  if(e.key==='ArrowLeft'||e.key==='ArrowRight'){
+    e.preventDefault();
+    if(game.selected<0)return;
+    const m=LEVELS[game.layer].mirrors[game.selected];
+    const step=(e.shiftKey?.055:.011)*(e.key==='ArrowLeft'?-1:1);
+    m.angle+=step;game.hint=null;Audio_.turn();syncHud();
+  }
+});
+$('btnStart').addEventListener('click',start);
+$('btnAgain').addEventListener('click',start);
+$('btnHint').addEventListener('click',useHint);
+$('btnReset').addEventListener('click',resetLayer);
+$('btnMute').addEventListener('click',setMute);
+$('btnAbout').addEventListener('click',()=>toggleAbout(true));
+$('btnClose').addEventListener('click',()=>toggleAbout(false));
+$('verse').addEventListener('click',()=>{if(game.verseReady)next();});
+function resize(){
+  const s=Math.min(window.innerWidth/W,window.innerHeight/H);
+  SCALE=s;
+  frame.style.transform=`translate(${Math.round((window.innerWidth-W*s)/2)}px,${Math.round((window.innerHeight-H*s)/2)}px) scale(${s})`;
+}
+window.addEventListener('resize',resize);resize();
+
+/* =====================================================================
+   9. MAIN LOOP
+   ===================================================================== */
+let last=performance.now(),hudTick=0;
+function loop(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;game.t+=dt;
+  const t=game.t,g=ctx;
+  updateDust(dt);
+  if(game.toastT>0){game.toastT-=dt;if(game.toastT<=0)$('toast').classList.remove('on');}
+
+  // hint tween
+  if(game.hint){
+    game.hint.t+=dt/1.0;
+    const m=LEVELS[game.layer].mirrors[game.hint.i];
+    m.angle=game.hint.from+angDiff(m.correct,game.hint.from)*smooth(clamp(game.hint.t,0,1));
+    if(game.hint.t>=1)game.hint=null;
+  }
+
+  if(game.state==='title'){
+    drawTitleScene(g,t);
+  }else if(game.state==='ending'){
+    game.endT+=dt;
+    drawEndingScene(g,game.endT);
+  }else{
+    const lv=LEVELS[game.layer];
+    const paused=game.about||game.state==='verse';
+    game.cast=cast(lv);
+
+    if(!paused&&!lv.solved){
+      if(game.cast.hit)lv.charge=clamp(lv.charge+dt/.82,0,1);
+      else lv.charge=clamp(lv.charge-dt*1.35,0,1);
+      Audio_.charge(lv.charge);
+      if(lv.charge>=1)solved();
+    }else Audio_.charge(0);
+
+    const want=lv.solved?1:lv.charge*.62;
+    lv.lit=lerp(lv.lit,want,Math.min(1,dt*2.6));
+
+    // backdrop cross-fade: ink appears only where the light has been
+    g.fillStyle='#060b10';g.fillRect(0,0,W,H);
+    g.drawImage(lv.bgDark,0,0,W,H);
+    if(lv.lit>.002){g.save();g.globalAlpha=clamp(lv.lit,0,1);g.drawImage(lv.bgLit,0,0,W,H);g.restore();}
+
+    drawBeam(g,game.cast,t);
+    if(game.cast.hit||lv.solved){
+      g.save();g.globalCompositeOperation='lighter';
+      wash(g,lv.target.x,lv.target.y,44+lv.charge*30,C.gold,.05+lv.charge*.20);
+      g.restore();
+    }
+    if(game.cast.center)drawDust(g,game.cast.center,t);
+    drawLampSource(g,lv.source.x,lv.source.y,t,lv.lit);
+    lv.mirrors.forEach((m,i)=>drawMirror(g,m,i,t,lv.lit));
+    drawTarget(g,lv.target.x,lv.target.y,t,lv.charge,lv.solved?1:0);
+
+    // layer watermark
+    g.save();g.globalAlpha=.5;
+    g.font='11px Consolas, monospace';g.textAlign='left';
+    g.fillStyle='rgba(140,165,178,.35)';
+    g.fillText(`TIER ${ROMAN[lv.index]}  ·  RAY ${RAYS}  ·  DEPTH ${MAX_DEPTH}`,52,860);
+    g.restore();
+
+    if(lv.solved&&game.t-game.solveAt>1.25&&game.state==='play')showVerse();
+    if(game.state==='verse'&&!game.verseReady&&game.t-game.verseAt>.9)game.verseReady=true;
+  }
+
+  hudTick+=dt;
+  if(hudTick>.1){hudTick=0;if(game.state==='play')syncHud();}
+  requestAnimationFrame(loop);
+}
+try{
+  syncHud();
+  requestAnimationFrame(loop);
+}catch(err){
+  $('fatal').style.display='block';
+  $('fatal').textContent='渲染初始化失败：'+err.message;
+  console.error(err);
+}
+
+</script>
+</body>
+</html>

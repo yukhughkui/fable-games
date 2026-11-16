@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>映河 · 五款单文件网页游戏</title>
+<style>
+  :root{
+    --paper:#efe9dc; --ink:#1c1a18; --ink-soft:#4a443c; --zhu:#9e3b2e;
+    --line:rgba(28,26,24,.14); --card:rgba(255,253,247,.55);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{
+    background:
+      radial-gradient(60% 40% at 50% -10%, rgba(255,255,255,.7), transparent 70%),
+      var(--paper);
+    color:var(--ink);
+    font-family:"Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC","SimSun",serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
+  }
+  .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:78px 26px 96px}
+  header{text-align:center;margin-bottom:66px}
+  .seal{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:40px;height:40px;background:var(--zhu);color:#f4ece0;
+    font-size:13px;letter-spacing:.02em;line-height:1.05;margin-bottom:26px;
+    box-shadow:0 2px 8px rgba(158,59,46,.18);
+  }
+  header h1{
+    margin:0;font-weight:400;font-size:clamp(34px,6vw,62px);letter-spacing:.18em;
+    text-indent:.18em;
+  }
+  header .en{
+    margin:16px 0 0;font-family:Georgia,"Times New Roman",serif;
+    font-size:clamp(10px,1.6vw,13px);letter-spacing:.5em;text-indent:.5em;color:#6b6257;
+  }
+  header .rule{width:52px;height:1px;background:var(--ink-soft);opacity:.4;margin:28px auto 24px}
+  header p{
+    margin:0 auto;max-width:620px;line-height:2;font-size:14.5px;color:var(--ink-soft);
+    letter-spacing:.06em;
+  }
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:26px}
+  a.card{
+    display:block;text-decoration:none;color:inherit;
+    background:var(--card);border:1px solid var(--line);
+    transition:transform .35s ease, box-shadow .35s ease, border-color .35s ease;
+    box-shadow:0 3px 14px rgba(40,34,26,.05);
+  }
+  a.card:hover,a.card:focus-visible{
+    transform:translateY(-5px);
+    box-shadow:0 16px 34px rgba(40,34,26,.14);
+    border-color:rgba(158,59,46,.35);outline:none;
+  }
+  .thumb{position:relative;aspect-ratio:16/9;overflow:hidden;background:#1a1a18}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s ease}
+  a.card:hover .thumb img{transform:scale(1.04)}
+  .num{
+    position:absolute;left:0;top:0;padding:6px 12px;
+    background:rgba(28,26,24,.78);color:#e8dfd0;
+    font-family:Georgia,serif;font-size:11px;letter-spacing:.18em;
+  }
+  .body{padding:22px 24px 24px}
+  .body h2{
+    margin:0 0 5px;font-weight:400;font-size:23px;letter-spacing:.1em;
+  }
+  .body .sub{
+    margin:0 0 16px;font-family:Georgia,"Times New Roman",serif;
+    font-size:10.5px;letter-spacing:.32em;color:#8a7f70;text-transform:uppercase;
+  }
+  .body .desc{
+    margin:0;font-size:13.5px;line-height:1.95;color:var(--ink-soft);min-height:78px;
+  }
+  .go{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-top:20px;padding-top:15px;border-top:1px solid var(--line);
+    font-size:12.5px;letter-spacing:.16em;color:var(--zhu);
+  }
+  .go .arrow{transition:transform .3s ease}
+  a.card:hover .go .arrow{transform:translateX(5px)}
+  footer{
+    text-align:center;margin-top:80px;padding-top:30px;border-top:1px solid var(--line);
+    font-size:12px;line-height:2;color:#877d70;letter-spacing:.06em;
+  }
+  footer a{color:var(--zhu);text-decoration:none;border-bottom:1px solid rgba(158,59,46,.35)}
+  @media (max-width:600px){
+    .wrap{padding:52px 18px 70px}header{margin-bottom:44px}
+    .grid{grid-template-columns:1fr;gap:20px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="seal">映<br>河</div>
+    <h1>五款单文件网页游戏</h1>
+    <p class="en">FIVE SELF-CONTAINED BROWSER GAMES</p>
+    <div class="rule"></div>
+    <p>画面、音乐与音效全部由代码生成，不依赖任何外部素材。点开即玩，也可离线打开。</p>
+  </header>
+
+  <main class="grid">
+    <a class="card" href="passing-lamp/">
+      <div class="thumb"><span class="num">01 / 05</span><img src="screenshots/passing-lamp.png" alt="传灯 开始页面"></div>
+      <div class="body">
+        <h2>传灯</h2>
+        <p class="sub">The Passing Lamp</p>
+        <p class="desc">拖动铜镜引导光路，照亮沉睡七层的夜塔。光到之处，水墨才从黑暗中显形。</p>
+        <div class="go"><span>点击开始</span><span class="arrow">→</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="azure-crane/">
+      <div class="thumb"><span class="num">02 / 05</span><img src="screenshots/azure-crane.png" alt="鹤渡 开始页面"></div>
+      <div class="body">
+        <h2>鹤渡</h2>
+        <p class="sub">Azure Crane</p>
+        <p class="desc">御风而行，过千山而不留痕。在晨昏流转的青绿山水间振翅穿门、收集灵气。</p>
+        <div class="go"><span>点击开始</span><span class="arrow">→</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="astral-chord/">
+      <div class="thumb"><span class="num">03 / 05</span><img src="screenshots/astral-chord.png" alt="星弦 开始页面"></div>
+      <div class="body">
+        <h2>星弦</h2>
+        <p class="sub">Astral Chord</p>
+        <p class="desc">七弦张于星海，星子沿弦滑落。在它抵达共鸣环时拨响，令其开花。</p>
+        <div class="go"><span>点击开始</span><span class="arrow">→</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="lumen-drift/">
+      <div class="thumb"><span class="num">04 / 05</span><img src="screenshots/lumen-drift.png" alt="星槎 开始页面"></div>
+      <div class="body">
+        <h2>星槎</h2>
+        <p class="sub">Lumen Drift</p>
+        <p class="desc">以光为桨，渡墨海无涯。借玄涡引力甩速，拾光蓄能，放一记横扫星潮的光爆。</p>
+        <div class="go"><span>点击开始</span><span class="arrow">→</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="luokuan/">
+      <div class="thumb"><span class="num">05 / 05</span><img src="screenshots/luokuan.png" alt="落款 开始页面"></div>
+      <div class="body">
+        <h2>落款</h2>
+        <p class="sub">The Inscription</p>
+        <p class="desc">你是那滴赶在淡墨之前落笔的墨。以有限的墨量续写山径，走完五卷，落下终章朱印。</p>
+        <div class="go"><span>点击开始</span><span class="arrow">→</span></div>
+      </div>
+    </a>
+  </main>
+
+  <footer>
+    导演 / 渲染 / 作曲：映河、云渡禅穹 · 2026<br>
+    <a href="https://github.com/yukhughkui/fable-games">GitHub 仓库</a> · 五款均为零依赖单文件游戏
+  </footer>
+</div>
+</body>
+</html>
