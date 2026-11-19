@@ -1,22 +1,22 @@
-# 六款单文件网页游戏
+# 七款单文件网页游戏
 
-一个仓库收录六款可直接在浏览器里玩的单文件小游戏。效仿 Fable 5.2 的做法：**画面、音乐、音效全部由代码生成**，不依赖任何图片、音频、字体等外部素材；每款游戏就是一个 `index.html`，双击即可离线游玩，也可通过下方链接在线点击即玩。
+一个仓库收录七款可直接在浏览器里玩的单文件小游戏。效仿 Fable 5.2 的做法：**画面、音乐、音效全部由代码生成**，不依赖任何图片、音频、字体等外部素材；每款游戏就是一个 `index.html`，双击即可离线游玩，也可通过下方链接在线点击即玩。
 
 本仓库已开启 GitHub Pages 静态托管，所有链接均可直接打开。
 
 ## 关于本仓库
 
-这是一组「单文件网页游戏」实验。2026 年 11 月，受 `fengyiqicoder/awesome-fable-5.2` 收录作品的启发——那批作品共同证明了一件事：**不需要图片、音频、字体和构建工具，仅靠浏览器里的代码，也能做出有电影感、能玩、有余韵的小作品**——于是照着这条路径，陆续做了六款。
+这是一组「单文件网页游戏」实验。2026 年 11 月，受 `fengyiqicoder/awesome-fable-5.2` 收录作品的启发——那批作品共同证明了一件事：**不需要图片、音频、字体和构建工具，仅靠浏览器里的代码，也能做出有电影感、能玩、有余韵的小作品**——于是照着这条路径，陆续做了七款。
 
-六款作品共享同一条技术底线：
+七款作品共享同一条技术底线：
 
 - **单文件**：每款就是一个 `index.html`，零外部素材、零 CDN、零依赖，双击即可离线打开；
 - **全代码生成**：画面由 Canvas / WebGL 逐像素算出，音乐与音效由 Web Audio 实时合成，没有一行引用现成素材；
 - **克制而完整**：各自有独立的命题、视觉语言与机制，标题页、操作提示、结算与静音/暂停一应俱全。
 
-其中第六款《相位穿梭》将 Three.js r128 官方运行时内联进单文件，同样零联网、零外部素材；其余五款为纯原生 Canvas / WebGL。
+其中第六款《相位穿梭》将 Three.js r128 官方运行时内联进单文件，同样零联网、零外部素材；其余六款为纯原生 Canvas / WebGL。
 
-六款刻意选了互不重复的画种与玩法，避免成为「又一个 3D demo」：
+七款刻意选了互不重复的画种与玩法，避免成为「又一个 3D demo」：
 
 | 游戏 | 视觉语言 | 核心机制 |
 |------|----------|----------|
@@ -26,6 +26,7 @@
 | 星槎 | 墨海深空 + 引力光轨 | 引力弹弓 / 光爆清屏 |
 | 落款 | 淡墨山水长卷 | 限墨续画 / 五卷成卷 |
 | 相位穿梭 | 合成波霓虹 + 双相位色界 | 相位极性切换 / 环穿连击 |
+| 折光协议 | 深空霓虹 + 几何光轨 | 街机射击 / 冲刺穿弹 / 时间膨胀 |
 
 ## 游戏一览
 
@@ -37,6 +38,7 @@
 | 4 | 星槎 · LUMEN DRIFT | 以光为桨，渡墨海无涯 | 引舟借玄涡引力甩速，拾光蓄能放冲击波，在星潮中穿行 | [点击即玩](https://yukhughkui.github.io/fable-games/lumen-drift/) |
 | 5 | 落款 · 一卷未完成的山水 | 你是那滴赶在淡墨之前落笔的墨 | 用有限的墨量续写脚下山径，走完五卷并为长卷落下印章 | [点击即玩](https://yukhughkui.github.io/fable-games/luokuan/) |
 | 6 | 相位穿梭 · PHASE DRIFT | 在青与绯两个世界之间，找到唯一的路 | 同色障碍为实、异色为虚，空格切换相位；同色圆环完美穿越攒连击，点燃 FEVER ×2 | [点击即玩](https://yukhughkui.github.io/fable-games/phase-drift/) |
+| 7 | 折光协议 · REFRACTION PROTOCOL | 让每一次折射，都成为连锁反应 | 驾驶光核穿越五重敌潮，以冲刺抹除弹幕、时间膨胀撕开死角，构筑独特光核并击碎三阶段 Boss | [点击即玩](https://yukhughkui.github.io/fable-games/refraction-protocol/) |
 
 ## 开始页面
 
@@ -96,6 +98,15 @@
 - 入口：[phase-drift/index.html](phase-drift/index.html) · [在线试玩](https://yukhughkui.github.io/fable-games/phase-drift/)
 - 操作：`WASD` / 方向键移动，空格 / `Shift` / 左键切换相位，`P` 暂停，`M` 静音，`R` 重开
 
+### 7. 折光协议 · REFRACTION PROTOCOL
+
+![折光协议 开始页面](screenshots/refraction-protocol.png)
+
+深空霓虹几何街机射击。驾驶最后一枚光核穿越五重失控扇区，面对四种敌人与三阶段「虚空构筑者」。相位冲刺可消除弹幕并反伤敌人，时间膨胀可消耗通量换取反应空间；拾取光屑解锁三选一变异，以 12 种升级构筑独特光核。画面由原生 Canvas 绘制，音乐与音效由 Web Audio 实时合成，支持键鼠、触屏、暂停、静音与本地最高分。本作由豆包（Doubao）生成。
+
+- 入口：[refraction-protocol/index.html](refraction-protocol/index.html) · [在线试玩](https://yukhughkui.github.io/fable-games/refraction-protocol/)
+- 操作：`WASD` / 方向键移动，鼠标瞄准 / 左键射击，`Space` 相位冲刺，`Shift` / 右键时间膨胀，`P` 暂停，`M` 静音
+
 ## 目录结构
 
 ```
@@ -108,6 +119,7 @@ fable-games/
 ├── lumen-drift/index.html  # 星槎
 ├── luokuan/index.html      # 落款
 ├── phase-drift/index.html  # 相位穿梭
+├── refraction-protocol/index.html # 折光协议
 └── screenshots/            # 各游戏开始页面截图
 ```
 
